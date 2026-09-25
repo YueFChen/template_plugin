@@ -1,33 +1,70 @@
-> This is an independently versioned plugin repository. Local builds use the stable Core SDK from the adjacent `Wonderland_Assistant` checkout; see [Core repository boundaries](../../Wonderland_Assistant/docs/REPOSITORY-BOUNDARIES.md).
+# Wonderland Plugin Template
 
-# Wonderland 插件模板
+这是 Wonderland 动态插件的公开起步模板仓库。它只包含一个最小可运行插件、插件 SDK/UI 用法示例和独立构建工具；Core 应用、其他插件和运行数据不属于本仓库。
 
-这是符合当前动态插件边界的可运行起点：manifest v2、独立构建的 UI、版本化 UI Bridge SDK、Rust stdio 后端和声明式 contract。Core 不静态导入模板代码。
+## 创建插件仓库
 
-## 构建和调试
-
-在仓库根目录执行：
+将本模板仓库检出到 Core checkout 的 `plugins/template_plugin`。在 Core 根目录运行创建命令，它会复制模板到 `plugins/<plugin-id>`，同步插件元数据、安装依赖、校验结构并初始化一个新的 Git 仓库。源模板不会被修改，Core 也不会把新插件加入自身的 Cargo 或 pnpm workspace。
 
 ```powershell
-pnpm build
+pnpm run create:plugin -- --id my_plugin --name "我的插件" --author "作者名"
 ```
 
-生成目录包：`target/template-plugin`。使用 Trae 的 **Core：运行桌面应用** debug 配置，在“设置 → 插件管理”安装这个目录。模板申请 `theme.followHost` 与 `workspace.sidebar` UI 集成，不申请后端能力。
+如果模板仓库没有放在默认路径，可以指定本地目录或 Git 仓库地址：
 
-插件主页面会直接填满 Core 提供的内容 Surface。请让插件根页面背景保持透明，以显示 Core 的自定义背景；插件自身需要的卡片和输入面板再使用共享主题令牌绘制。Activity 与 View 都运行在隔离 iframe 中，主题明暗通过 UI SDK 同步。
+```powershell
+pnpm run create:plugin -- --template .\path\to\template --id my_plugin --name "我的插件" --author "作者名"
+pnpm run create:plugin -- --template "https://github.com/<owner>/<repo>.git" --id my_plugin --name "我的插件" --author "作者名"
+```
 
-模板包含一个 Workspace 主 Activity 和一个由 Core 承载的辅助 Sidebar View。工作区只显示主 Activity 一个工具入口；主页面通过 `openWorkspaceView` 打开详情侧栏。Activity 调用后端 `get_info`，并演示主题跟随与 Surface lifecycle。侧栏框架、入口和显隐仍归 Core 管理；插件只提供内容。
+创建命令不会提交初始 Git commit 或配置远端。确认生成内容后，在新插件目录自行提交并按需添加远端。
 
-## 复制后必须修改
+## 开发与调试
 
-复制到新的 `plugins/<plugin_id>` 后，使用合法且唯一的插件 ID 替换 `template_plugin`，并同步修改：
+创建成功后，插件仓库位于 `plugins/my_plugin`。以下命令从 Core 根目录执行：
 
-- `package/manifest.json` 的 `id`、名称、版本、贡献 ID 与 UI 集成声明。
-- `package/contract.json` 中的常量和业务方法。
-- `src/main.rs` 中的 `PLUGIN_ID`、名称、版本与后端实现。
-- `Cargo.toml` package name 与独立版本、UI package name，以及构建脚本中的源码目录和可执行文件名。
-- `scripts/build-plugin.mjs` 的构建入口和输出目录，或为新插件建立独立构建入口。
+```powershell
+pnpm --dir .\plugins\my_plugin run validate
+pnpm --dir .\plugins\my_plugin run debug
+```
 
-保留 manifest v2 的严格结构；新插件不要加入旧路由字段或适配层。只保留实际使用的 UI integrations 与贡献，不需要侧栏 View 时删除 `workspace.sidebar`、View 声明和相关 UI 代码。`Home` 是 Core 品牌入口，不用于注册插件功能。按最小权限填写 `capabilities`；模板默认不申请任何文件、网络、账号或密钥能力。
+`debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用和启动开发插件。请先关闭现有 Core 开发版。修改代码后重新运行调试命令；当前不支持插件热重载。
 
-当前构建入口只打包 Windows x86_64 MSVC。模板目录用于开发，不包含发布签名；release Core 仍要求符合 P2 的签名策略。安装、授权与 WebView 隔离的验收步骤见[开发环境与 Trae 调试指南](../../Wonderland_Assistant/docs/开发环境与Trae调试指南.md)。
+Core 当前默认关闭动态插件 UI，直到 WebView 隔离原型通过验证。需要试用 UI 时，可显式启用实验模式：
+
+```powershell
+pnpm --dir .\plugins\my_plugin run debug:ui
+```
+
+实验模式只对 debug Core 设置 `WONDERLAND_PLUGIN_UI_ISOLATION_TEST=1`；release 构建仍忽略该开关。标准调试模式可验证插件后端，实验模式才会加载隔离 iframe 中的 UI。
+
+## 目录与接口
+
+- `package/manifest.json` 声明插件身份、兼容范围、UI 入口、贡献点和所需能力。manifest 使用严格 schema，不要添加未定义字段。
+- `package/contract.json` 声明 UI 可调用的后端方法和数据结构；修改接口时同步更新 Rust 实现。
+- `src/` 是独立 Rust 后端，通过 `wonderland-plugin-sdk` 接入 Core。标准输出只写协议帧，诊断写到标准错误。
+- `ui/` 是独立 React 应用，通过 UI Bridge SDK 调用后端和宿主服务；不要直接调用 Tauri 命令。依赖共享主题时使用 Core 的主题令牌。
+- Activity 是 Workspace 主工作区入口；View 是 Core 承载的辅助视图。入口和容器均由 Core 管理。
+- `capabilities` 约束插件通过 Core SDK 调用的宿主服务。插件后端仍以当前用户权限运行，Core 不提供操作系统沙箱；安装者应审阅插件代码。
+
+## 构建与发布
+
+环境要求：Windows x86_64 MSVC、Node.js 24、pnpm 11、Rust 1.98.1，以及位于 Core checkout `plugins/<plugin-id>` 下的插件仓库。模板当前只构建 Windows x86_64 插件。
+
+```powershell
+pnpm typecheck
+pnpm build
+pnpm run package:plugin
+```
+
+- `pnpm build` 生成 `target/dev-package`，供 Core 插件管理中的手动安装使用。
+- `pnpm run package:plugin` 生成优化后的 `.wplug` 与 SHA-256 校验清单。
+- `pnpm run validate` 检查 manifest、contract、Cargo/npm 元数据和包入口的一致性。
+
+插件版本遵循 SemVer。SHA-256 清单用于发现包内容不一致，不代表发布者身份，也不是代码安全证明；模板不使用发布签名。作者信息记录在 Cargo/npm 元数据和 `NOTICE.md` 中，不写入当前不接受 `author` 字段的 manifest。
+
+模板内容采用 Apache-2.0 许可。生成插件后请按需要更新插件许可证，并保留模板材料的署名通知。
+
+## CI
+
+CI 会先做独立的元数据检查。配置仓库变量 `WONDERLAND_CORE_REPOSITORY` 为 Core 的 `owner/name` 后，Windows 集成任务会在 `plugins/template_plugin` 布局中构建和检查插件；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。

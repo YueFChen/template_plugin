@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { useEffect, useState } from 'react'
 import { createPluginHostClient } from '@wonderland/plugin-ui-sdk'
+import { t } from './i18n/index.ts'
 
 import './style.css'
 
@@ -51,12 +52,12 @@ function App() {
   if (isDetailsView) {
     return (
       <main className="panel">
-        <p className="eyebrow">CORE OWNED VIEW</p>
-        <h1>插件详情</h1>
-        <p>这个内容通过 manifest 注册为 Workspace 侧栏 View。侧栏容器、入口与显隐由 Core 管理。</p>
+        <p className="eyebrow">{t('view.badge')}</p>
+        <h1>{t('view.title')}</h1>
+        <p>{t('view.description')}</p>
         <dl>
-          <dt>插件 ID</dt><dd>{info?.id ?? '加载中…'}</dd>
-          <dt>Surface</dt><dd>{lifecycle}</dd>
+          <dt>{t('view.pluginId')}</dt><dd>{info?.id ?? t('status.loading')}</dd>
+          <dt>{t('view.surface')}</dt><dd>{lifecycle}</dd>
         </dl>
       </main>
     )
@@ -64,15 +65,15 @@ function App() {
 
   return (
     <main className="panel" data-surface-state={lifecycle}>
-      <p className="eyebrow">WONDERLAND PLUGIN TEMPLATE</p>
-      <h1>{info?.name ?? '插件模板'}</h1>
-      <p>页面在独立插件包中构建，通过版本化 UI SDK 调用后端。</p>
+      <p className="eyebrow">{t('app.badge')}</p>
+      <h1>{info?.name ?? t('app.title')}</h1>
+      <p>{t('app.description')}</p>
       {info && <p className="meta">{info.id} · v{info.version} · {lifecycle}</p>}
-      {error && <p role="alert" className="error">无法连接插件后端：{error}</p>}
+      {error && <p role="alert" className="error">{t('app.backendError', { error })}</p>}
       <button type="button" onClick={() => void host.openWorkspaceView('details')}>
-        打开 Core 侧栏 View
+        {t('app.openView')}
       </button>
-      <p className="note">移除不需要的示例集成或贡献，并按最小权限申请 Core 能力。</p>
+      <p className="note">{t('app.note')}</p>
     </main>
   )
 }

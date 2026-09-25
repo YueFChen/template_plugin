@@ -1,124 +1,81 @@
-use std::io::{self, BufRead, Write};
-
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
+use wonderland_plugin_sdk::{HostClient, PluginError, serve};
 
 const PLUGIN_ID: &str = "template_plugin";
 const PLUGIN_NAME: &str = "Wonderland Plugin Template";
-const PLUGIN_VERSION: &str = "0.1.0";
+const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
-    let contract = match std::fs::read("contract.json") {
-        Ok(bytes) => bytes,
-        Err(error) => {
-            eprintln!("cannot read contract.json: {error}");
-            std::process::exit(2);
-        }
-    };
-    let contract_sha256 = format!("{:x}", Sha256::digest(contract));
-    let stdin = io::stdin();
-    let mut stdout = io::BufWriter::new(io::stdout().lock());
-
-    for line in stdin.lock().lines() {
-        let line = match line {
-            Ok(line) => line,
-            Err(error) => {
-                eprintln!("cannot read protocol input: {error}");
-                break;
-            }
-        };
-        let message: Value = match serde_json::from_str(&line) {
-            Ok(message) => message,
-            Err(error) => {
-                eprintln!("invalid protocol JSON: {error}");
-                break;
-            }
-        };
-
-        match message.get("type").and_then(Value::as_str) {
-            Some("hello") if message.get("role").and_then(Value::as_str) == Some("host") => {
-                if message.get("pluginId").and_then(Value::as_str) != Some(PLUGIN_ID) {
-                    eprintln!("host requested the wrong plugin ID");
-                    std::process::exit(3);
-                }
-                let hello = json!({
-                    "protocol": "wonderland-plugin",
-                    "version": "1.0.0",
-                    "type": "hello",
-                    "role": "plugin",
-                    "pluginId": PLUGIN_ID,
-                    "pluginVersion": PLUGIN_VERSION,
-                    "contractSha256": contract_sha256,
-                });
-                if write_frame(&mut stdout, &hello).is_err() {
-                    break;
-                }
-            }
-            Some("request") => {
-                let id = message.get("id").and_then(Value::as_str).unwrap_or("");
-                let method = message.get("method").and_then(Value::as_str).unwrap_or("");
-                let params = message.get("params").cloned().unwrap_or(Value::Null);
-                let result = match method {
-                    "get_info" if params.as_object().is_some_and(|object| object.is_empty()) => {
-                        json!({
-                            "id": PLUGIN_ID,
-                            "name": PLUGIN_NAME,
-                            "version": PLUGIN_VERSION,
-                        })
-                    }
-                    "get_info" => {
-                        let response = error(id, "INVALID_INPUT", "get_info expects an empty object");
-                        if write_frame(&mut stdout, &response).is_err() {
-                            break;
-                        }
-                        continue;
-                    }
-                    _ => {
-                        let response = error(id, "METHOD_NOT_FOUND", "method is not supported");
-                        if write_frame(&mut stdout, &response).is_err() {
-                            break;
-                        }
-                        continue;
-                    }
-                };
-                let response = json!({
-                    "protocol": "wonderland-plugin",
-                    "version": "1.0.0",
-                    "type": "result",
-                    "id": id,
-                    "result": result,
-                });
-                if write_frame(&mut stdout, &response).is_err() {
-                    break;
-                }
-            }
-            Some("cancel") => {
-                let id = message.get("id").and_then(Value::as_str).unwrap_or("");
-                let response = error(id, "CANCELLED", "request cancelled");
-                if write_frame(&mut stdout, &response).is_err() {
-                    break;
-                }
-            }
-            _ => {
-                eprintln!("unexpected protocol message");
-                break;
-            }
-        }
+    if let Err(error) = serve(
+        PLUGIN_ID,
+        PLUGIN_VERSION,
+        include_str!("../package/contract.json"),
+        dispatch,
+    ) {
+        eprintln!("plugin protocol stopped: {error}");
+        std::process::exit(1);
     }
 }
 
-fn error(id: &str, code: &str, message: &str) -> Value {
-    json!({
-        "protocol": "wonderland-plugin",
-        "version": "1.0.0",
-        "type": "error",
-        "id": id,
-        "error": { "code": code, "message": message, "details": null },
-    })
+fn dispatch(
+    _host: HostClient,
+    method: String,
+    params: Value,
+    _request_id: Option<String>,
+) -> Result<Value, PluginError> {
+    if method == "__cancel" {
+        return Ok(Value::Null);
+    }
+    dispatch_method(&method, params)
 }
 
-fn write_frame(stdout: &mut impl Write, frame: &Value) -> io::Result<()> {
-    serde_json::to_writer(&mut *stdout, frame)?;
-    stdout.write_all(b"\n")?;
-    stdout.flush()
+fn dispatch_method(method: &str, params: Value) -> Result<Value, PluginError> {
+    match method {
+        "get_info" if params.as_object().is_some_and(|object| object.is_empty()) => Ok(json!({
+            "id": PLUGIN_ID,
+            "name": PLUGIN_NAME,
+            "version": PLUGIN_VERSION,
+        })),
+        "get_info" => Err(PluginError::new(
+            "INVALID_INPUT",
+            "get_info expects an empty object",
+        )),
+        _ => Err(PluginError::new(
+            "METHOD_NOT_FOUND",
+            "method is not supported",
+        )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{PLUGIN_ID, PLUGIN_NAME, PLUGIN_VERSION, dispatch_method};
+    use serde_json::{Value, json};
+
+    #[test]
+    fn get_info_returns_the_plugin_identity() {
+        let info = dispatch_method("get_info", json!({})).expect("get_info should succeed");
+        assert_eq!(
+            info,
+            json!({
+                "id": PLUGIN_ID,
+                "name": PLUGIN_NAME,
+                "version": PLUGIN_VERSION,
+            })
+        );
+    }
+
+    #[test]
+    fn get_info_rejects_unexpected_parameters() {
+        let error = dispatch_method("get_info", json!({"unexpected": true}))
+            .expect_err("unexpected parameters should fail");
+        assert_eq!(error.code, "INVALID_INPUT");
+    }
+
+    #[test]
+    fn unknown_methods_are_reported() {
+        let error =
+            dispatch_method("missing", Value::Null).expect_err("unknown methods should fail");
+        assert_eq!(error.code, "METHOD_NOT_FOUND");
+    }
 }

@@ -3,7 +3,7 @@
   "id": "template_plugin",
   "name": "Wonderland Plugin Template",
   "version": "0.1.0",
-  "description": "Starter template for a dynamically loaded Wonderland plugin.",
+  "description": "Starter plugin template for the Wonderland dynamic plugin host.",
   "icon": "puzzle",
   "hostCompatibility": {
     "minCoreVersion": "0.1.0",
@@ -24,19 +24,22 @@
       "minVersion": "1.0.0",
       "maxVersionExclusive": "2.0.0"
     },
-    "integrations": ["theme.followHost", "workspace.sidebar"],
+    "integrations": [
+      "theme.followHost",
+      "workspace.sidebar"
+    ],
     "contributions": [
       {
         "id": "main",
         "kind": "activity",
-        "title": "Plugin Template",
+        "title": "Wonderland Plugin Template",
         "icon": "puzzle",
         "defaultOrder": 500
       },
       {
         "id": "details",
         "kind": "view",
-        "title": "Template Details",
+        "title": "Wonderland Plugin Template Details",
         "icon": "images",
         "defaultOrder": 510,
         "location": "workspace.sidebar"

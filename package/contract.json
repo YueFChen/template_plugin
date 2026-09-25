@@ -8,11 +8,24 @@
       },
       "result": {
         "type": "object",
-        "required": ["id", "name", "version"],
+        "required": [
+          "id",
+          "name",
+          "version"
+        ],
         "properties": {
-          "id": { "type": "string", "const": "template_plugin" },
-          "name": { "type": "string", "maxLength": 120 },
-          "version": { "type": "string", "const": "0.1.0" }
+          "id": {
+            "type": "string",
+            "const": "template_plugin"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "version": {
+            "type": "string",
+            "const": "0.1.0"
+          }
         },
         "additionalProperties": false
       },

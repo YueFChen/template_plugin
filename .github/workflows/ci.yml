@@ -1,0 +1,67 @@
+name: Plugin template CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    name: Validate template metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/validate-template.mjs
+
+  core-integration:
+    name: Build with Core SDK and UI
+    if: ${{ vars.WONDERLAND_CORE_REPOSITORY != '' }}
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Core
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.WONDERLAND_CORE_REPOSITORY }}
+          path: Wonderland_Assistant
+          token: ${{ secrets.WONDERLAND_CORE_CHECKOUT_TOKEN || github.token }}
+      - name: Checkout plugin template into Core development layout
+        uses: actions/checkout@v4
+        with:
+          path: Wonderland_Assistant/plugins/template_plugin
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.27.0
+      - name: Create a fresh plugin repository from the template
+        run: pnpm run create:plugin -- --id ci_plugin --name "CI Plugin" --author "CI"
+        working-directory: Wonderland_Assistant
+      - name: Build the generated plugin
+        run: pnpm --dir plugins/ci_plugin run build
+        working-directory: Wonderland_Assistant
+      - name: Show pinned Rust toolchain
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+        run: rustup show
+      - run: rustfmt --edition 2024 --check src/main.rs
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: cargo clippy --all-targets --locked -- -D warnings
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: cargo test --locked
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: pnpm install --frozen-lockfile
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: pnpm validate
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: pnpm typecheck
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: pnpm build
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: pnpm run package:plugin
+        working-directory: Wonderland_Assistant/plugins/template_plugin

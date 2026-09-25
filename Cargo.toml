@@ -1,6 +1,7 @@
 [package]
 name = "wonderland-template-plugin"
 description = "Starter plugin for the Wonderland dynamic plugin host."
+authors = ["Yuef Chen"]
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
@@ -9,7 +10,7 @@ publish.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-sha2 = "0.10"
+wonderland-plugin-sdk = { version = "0.1.0", path = "../../crates/plugin-sdk" }
 
 [workspace]
 resolver = "3"
@@ -25,15 +26,4 @@ license = "Apache-2.0"
 publish = false
 
 [workspace.dependencies]
-serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ts-rs = { version = "12", features = ["serde-json-impl"] }
-# 日志门面：内核重新导出宏与 `instrument`，工作区不直连 tracing（ADR-002）。
-# `attributes` 是 `instrument` 的来源，显式列出以免被别处的 default-features = false 影响。
-tracing = { version = "0.1", features = ["attributes"] }
-# 日志实现：只有 crates/logging 使用，插件与其它 crate 不得依赖（ADR-002）。
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "ansi"] }
-tracing-appender = "0.2"
-# 输出层脱敏。
-regex = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }

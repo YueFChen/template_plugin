@@ -1,5 +1,6 @@
 {
-  "name": "wonderland-plugin-template_plugin",
+  "name": "wonderland-plugin-template-plugin",
+  "author": "Yuef Chen",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.27.0",
@@ -9,6 +10,10 @@
   },
   "scripts": {
     "build": "node scripts/build-plugin.mjs",
-    "typecheck": "pnpm --dir ui run typecheck"
+    "debug": "node scripts/debug-plugin.mjs",
+    "debug:ui": "node scripts/debug-plugin.mjs --experimental-ui",
+    "package:plugin": "node scripts/build-plugin.mjs --release --archive",
+    "typecheck": "pnpm --dir ui run typecheck",
+    "validate": "node scripts/validate-template.mjs"
   }
 }

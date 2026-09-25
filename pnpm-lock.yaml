@@ -13,6 +13,9 @@ importers:
       '@wonderland/plugin-ui-sdk':
         specifier: link:../../../packages/plugin-ui-sdk
         version: link:../../../packages/plugin-ui-sdk
+      '@wonderland/ui':
+        specifier: link:../../../packages/ui
+        version: link:../../../packages/ui
       react:
         specifier: 19.3.0
         version: 19.3.0
