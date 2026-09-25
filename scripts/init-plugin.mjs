@@ -181,7 +181,8 @@ function replaceFirst(text, pattern, replacement, label) {
 
 function replaceRustConstant(text, constant, value) {
   const pattern = new RegExp(`(const ${constant}: &str = )"[^"\\n]*";`)
-  return replaceFirst(text, pattern, `$1${rustString(value)};`, `Rust ${constant}`)
+  if (!pattern.test(text)) throw new Error(`Expected Rust ${constant} was not found.`)
+  return text.replace(pattern, (_match, prefix) => `${prefix}${rustString(value)};`)
 }
 
 function replaceTranslation(text, key, value) {
