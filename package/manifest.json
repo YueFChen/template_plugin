@@ -1,0 +1,52 @@
+{
+  "manifestVersion": 2,
+  "id": "template_plugin",
+  "name": "Wonderland Plugin Template",
+  "version": "0.1.0",
+  "description": "Starter template for a dynamically loaded Wonderland plugin.",
+  "icon": "puzzle",
+  "hostCompatibility": {
+    "minCoreVersion": "0.1.0",
+    "maxCoreVersionExclusive": "1.0.0",
+    "protocol": {
+      "minVersion": "1.0.0",
+      "maxVersionExclusive": "2.0.0"
+    }
+  },
+  "platform": {
+    "os": "windows",
+    "architecture": "x86_64",
+    "abi": "msvc"
+  },
+  "ui": {
+    "entry": "ui/index.html",
+    "bridgeCompatibility": {
+      "minVersion": "1.0.0",
+      "maxVersionExclusive": "2.0.0"
+    },
+    "integrations": ["theme.followHost", "workspace.sidebar"],
+    "contributions": [
+      {
+        "id": "main",
+        "kind": "activity",
+        "title": "Plugin Template",
+        "icon": "puzzle",
+        "defaultOrder": 500
+      },
+      {
+        "id": "details",
+        "kind": "view",
+        "title": "Template Details",
+        "icon": "images",
+        "defaultOrder": 510,
+        "location": "workspace.sidebar"
+      }
+    ]
+  },
+  "backend": {
+    "entry": "backend/wonderland-template-plugin.exe",
+    "transport": "stdio-ndjson-v1"
+  },
+  "contract": "contract.json",
+  "capabilities": []
+}

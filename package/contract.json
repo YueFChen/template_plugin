@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "methods": {
+    "get_info": {
+      "params": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "result": {
+        "type": "object",
+        "required": ["id", "name", "version"],
+        "properties": {
+          "id": { "type": "string", "const": "template_plugin" },
+          "name": { "type": "string", "maxLength": 120 },
+          "version": { "type": "string", "const": "0.1.0" }
+        },
+        "additionalProperties": false
+      },
+      "timeoutMs": 5000
+    }
+  },
+  "events": {}
+}
