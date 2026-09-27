@@ -21,13 +21,12 @@ jobs:
 
   core-integration:
     name: Build with Core SDK and UI
-    if: ${{ vars.WONDERLAND_CORE_REPOSITORY != '' }}
     runs-on: windows-latest
     steps:
       - name: Checkout Core
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.WONDERLAND_CORE_REPOSITORY }}
+          repository: ${{ vars.WONDERLAND_CORE_REPOSITORY || 'YueFChen/Wonderland_Assistant' }}
           path: Wonderland_Assistant
           token: ${{ secrets.WONDERLAND_CORE_CHECKOUT_TOKEN || github.token }}
       - name: Checkout plugin template into Core development layout

@@ -70,4 +70,4 @@ pnpm run package:plugin
 
 ## CI
 
-CI 会先做独立的元数据检查。配置仓库变量 `WONDERLAND_CORE_REPOSITORY` 为 Core 的 `owner/name` 后，Windows 集成任务会在 `plugins/template_plugin` 布局中构建和检查插件；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。
+CI 会先做独立的元数据检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件。需要测试其他 Core 仓库时，将仓库变量 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。
