@@ -79,9 +79,9 @@ for (const relative of ['package.json', 'ui/package.json']) {
   changes.set(relative, `${JSON.stringify(data, null, 2)}\n`)
 }
 
-let uiCopy = await readFile(path.join(root, 'ui/src/main.tsx'), 'utf8')
+let uiCopy = await readFile(path.join(root, 'ui/src/api/plugin.ts'), 'utf8')
 uiCopy = replaceFirst(uiCopy, /createPluginHostClient\('([^']+)'\)/, `createPluginHostClient(${jsString(id)})`, 'UI Bridge client ID')
-changes.set('ui/src/main.tsx', uiCopy)
+changes.set('ui/src/api/plugin.ts', uiCopy)
 
 let backend = await readFile(path.join(root, 'src/main.rs'), 'utf8')
 backend = replaceRustConstant(backend, 'PLUGIN_ID', id)
@@ -122,6 +122,7 @@ const readme = [
   '- `src/` 通过 `wonderland-plugin-sdk` 接入 Core；标准输出只写协议帧。',
   '- `ui/` 通过 UI Bridge SDK 调用后端和 Core 服务，不直接调用 Tauri 命令。',
   '- 插件后端以当前用户权限运行，Core 不提供操作系统沙箱；安装者应审阅代码来源。',
+  '- 目录规范、用户数据、插件服务与可选 Agent/MCP 适配器见 `PLUGIN_STRUCTURE.md`。',
   '',
   '## 发布',
   '',

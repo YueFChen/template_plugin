@@ -10,7 +10,7 @@ publish.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-wonderland-plugin-sdk = { version = "0.1.0", path = "../../crates/plugin-sdk" }
+wonderland-plugin-sdk = { version = "0.1.1", path = "../../crates/plugin-sdk" }
 
 [workspace]
 resolver = "3"

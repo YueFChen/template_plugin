@@ -4,14 +4,15 @@ import path from 'node:path'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), 'utf8'))
-const [manifest, contract, packageMetadata, uiMetadata, cargoToml, backendSource, uiSource, uiStyles] = await Promise.all([
+const [manifest, contract, packageMetadata, uiMetadata, cargoToml, backendSource, uiSource, uiApiSource, uiStyles] = await Promise.all([
   readJson('package/manifest.json'),
   readJson('package/contract.json'),
   readJson('package.json'),
   readJson('ui/package.json'),
   readFile(path.join(root, 'Cargo.toml'), 'utf8'),
   readFile(path.join(root, 'src/main.rs'), 'utf8'),
-  readFile(path.join(root, 'ui/src/main.tsx'), 'utf8'),
+  readFile(path.join(root, 'ui/src/App.tsx'), 'utf8'),
+  readFile(path.join(root, 'ui/src/api/plugin.ts'), 'utf8'),
   readFile(path.join(root, 'ui/src/style.css'), 'utf8'),
 ])
 
@@ -36,7 +37,7 @@ if (contract.methods?.get_info?.result?.properties?.id?.const !== manifest.id) f
 if (contract.methods?.get_info?.result?.properties?.version?.const !== manifest.version) fail('contract get_info version differs from manifest version.')
 if (!backendSource.includes(`const PLUGIN_ID: &str = ${JSON.stringify(manifest.id)};`)) fail('Rust backend ID differs from manifest ID.')
 if (!backendSource.includes(`const PLUGIN_NAME: &str = ${JSON.stringify(manifest.name)};`)) fail('Rust backend name differs from manifest name.')
-if (!uiSource.includes(`createPluginHostClient('${manifest.id}')`)) fail('UI Bridge client ID differs from manifest ID.')
+if (!uiApiSource.includes(`createPluginHostClient('${manifest.id}')`)) fail('UI Bridge client ID differs from manifest ID.')
 if (!uiStyles.includes("@import '@wonderland/ui/plugin-theme.css';")) fail('UI must import the shared Core plugin theme stylesheet.')
 if (Object.hasOwn(manifest, 'author')) fail('author is repository metadata, not a manifest v2 field.')
 if (!packageMetadata.author || !uiMetadata.author || !cargoToml.match(/^authors\s*=\s*\[[^\]]+\]$/m)) fail('author metadata must be present in Cargo and npm packages.')
@@ -45,6 +46,7 @@ if (manifest.capabilities?.length !== 0) fail('the starter template must request
 
 for (const relative of [
   'README.md',
+  'PLUGIN_STRUCTURE.md',
   'LICENSE',
   'NOTICE.md',
   'rust-toolchain.toml',
@@ -52,6 +54,11 @@ for (const relative of [
   'pnpm-lock.yaml',
   'ui/index.html',
   'ui/src/main.tsx',
+  'ui/src/App.tsx',
+  'ui/src/api/plugin.ts',
+  'ui/src/pages/MainPage.tsx',
+  'ui/src/pages/DetailsPage.tsx',
+  'src/commands.rs',
   'package/contract.json',
   'scripts/init-plugin.mjs',
   'scripts/debug-plugin.mjs',

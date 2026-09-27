@@ -49,7 +49,7 @@ jobs:
       - name: Show pinned Rust toolchain
         working-directory: Wonderland_Assistant/plugins/template_plugin
         run: rustup show
-      - run: rustfmt --edition 2024 --check src/main.rs
+      - run: cargo fmt --all -- --check
         working-directory: Wonderland_Assistant/plugins/template_plugin
       - run: cargo clippy --all-targets --locked -- -D warnings
         working-directory: Wonderland_Assistant/plugins/template_plugin

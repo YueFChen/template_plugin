@@ -1,6 +1,6 @@
 # Wonderland Plugin Template
 
-这是 Wonderland 动态插件的公开起步模板仓库。它只包含一个最小可运行插件、插件 SDK/UI 用法示例和独立构建工具；Core 应用、其他插件和运行数据不属于本仓库。
+这是 Wonderland 动态插件的公开起步模板仓库。模板包含最小可运行的 Rust 后端、React UI、严格接口契约、校验与打包工具。插件源码和 Git 历史独立于 Core；模板不把业务默认权限或服务依赖带给新插件。
 
 ## 创建插件仓库
 
@@ -43,9 +43,12 @@ pnpm --dir .\plugins\my_plugin run debug:ui
 - `package/manifest.json` 声明插件身份、兼容范围、UI 入口、贡献点和所需能力。manifest 使用严格 schema，不要添加未定义字段。
 - `package/contract.json` 声明 UI 可调用的后端方法和数据结构；修改接口时同步更新 Rust 实现。
 - `src/` 是独立 Rust 后端，通过 `wonderland-plugin-sdk` 接入 Core。标准输出只写协议帧，诊断写到标准错误。
-- `ui/` 是独立 React 应用，通过 UI Bridge SDK 调用后端和宿主服务；不要直接调用 Tauri 命令。依赖共享主题时使用 Core 的主题令牌。
+- `src/commands.rs` 按 contract 分派方法，业务增多后再按领域拆分模块。
+- `ui/` 是独立 React 应用：`App.tsx` 负责宿主生命周期，`api/` 封装 UI Bridge，`pages/` 放页面。不要直接调用 Tauri 命令。
 - Activity 是 Workspace 主工作区入口；View 是 Core 承载的辅助视图。入口和容器均由 Core 管理。
-- `capabilities` 约束插件通过 Core SDK 调用的宿主服务。插件后端仍以当前用户权限运行，Core 不提供操作系统沙箱；安装者应审阅插件代码。
+- `capabilities` 声明插件请求的 Core 服务授权。插件后端仍以当前用户权限运行，Core 不提供操作系统沙箱；安装者应审阅插件代码。
+
+详见 [PLUGIN_STRUCTURE.md](PLUGIN_STRUCTURE.md)，其中说明目录职责、manifest/contract、权限、用户数据、插件服务以及可选 Agent/MCP 适配器的边界。
 
 ## 构建与发布
 
@@ -59,7 +62,7 @@ pnpm run package:plugin
 
 - `pnpm build` 生成 `target/dev-package`，供 Core 插件管理中的手动安装使用。
 - `pnpm run package:plugin` 生成优化后的 `.wplug` 与 SHA-256 校验清单。
-- `pnpm run validate` 检查 manifest、contract、Cargo/npm 元数据和包入口的一致性。
+- `pnpm run validate` 检查 manifest、contract、Cargo/npm 元数据、UI Bridge 身份和标准目录的一致性。
 
 插件版本遵循 SemVer。SHA-256 清单用于发现包内容不一致，不代表发布者身份，也不是代码安全证明；模板不使用发布签名。作者信息记录在 Cargo/npm 元数据和 `NOTICE.md` 中，不写入当前不接受 `author` 字段的 manifest。
 
