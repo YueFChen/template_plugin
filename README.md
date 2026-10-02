@@ -30,13 +30,7 @@ pnpm --dir .\plugins\my_plugin run debug
 
 `debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用和启动开发插件。请先关闭现有 Core 开发版。修改代码后重新运行调试命令；当前不支持插件热重载。
 
-Core 当前默认关闭动态插件 UI，直到 WebView 隔离原型通过验证。需要试用 UI 时，可显式启用实验模式：
-
-```powershell
-pnpm --dir .\plugins\my_plugin run debug:ui
-```
-
-实验模式只对 debug Core 设置 `WONDERLAND_PLUGIN_UI_ISOLATION_TEST=1`；release 构建仍忽略该开关。标准调试模式可验证插件后端，实验模式才会加载隔离 iframe 中的 UI。
+Core 0.1.8 默认提供隔离 iframe 插件 UI，`pnpm debug` 即可使用。`debug:ui` 保留为旧命令别名，无需实验开关。
 
 ## 目录与接口
 
@@ -71,3 +65,7 @@ pnpm run package:plugin
 ## CI
 
 CI 会先做独立的元数据检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件。需要测试其他 Core 仓库时，将仓库变量 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。
+
+## Core 0.1.8 与远程访问
+
+见 [CORE-COMPATIBILITY.md](CORE-COMPATIBILITY.md)，包括最低版本、远程声明和发布顺序。

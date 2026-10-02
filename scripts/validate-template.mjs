@@ -25,6 +25,9 @@ const cargoVersion = cargoToml.match(/^version\s*=\s*"([^"\n]+)"/m)?.[1]
 const activityCount = manifest.ui?.contributions?.filter((item) => item.kind === 'activity').length ?? 0
 
 if (manifest.manifestVersion !== 2) fail('manifestVersion must be 2.')
+if (manifest.backend?.supportsServiceContext !== true) fail('updated SDK context support is required.')
+if (manifest.remoteAccess !== undefined && typeof manifest.remoteAccess !== 'boolean') fail('remoteAccess must be a boolean when declared.')
+if (manifest.hostCompatibility?.minCoreVersion !== '0.1.8') fail('template requires the Core 0.1.8 SDK baseline.')
 if (!/^[a-z][a-z0-9_-]{0,63}$/.test(manifest.id)) fail('manifest ID does not match the plugin ID schema.')
 if (!manifest.name || manifest.name.length > 120) fail('manifest name is missing or too long.')
 if (!cargoName || !cargoVersion) fail('Cargo package name or version is missing.')
@@ -63,6 +66,7 @@ for (const relative of [
   'scripts/init-plugin.mjs',
   'scripts/debug-plugin.mjs',
   'scripts/build-plugin.mjs',
+  'scripts/check-core-compatibility.mjs',
   '.github/workflows/ci.yml',
 ]) {
   try {

@@ -6,7 +6,6 @@ import path from 'node:path'
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const coreRoot = path.resolve(pluginRoot, '../..')
 const packageRoot = path.join(pluginRoot, 'target', 'dev-package')
-const experimentalUi = process.argv.includes('--experimental-ui')
 
 for (const requiredPath of [
   path.join(coreRoot, 'package.json'),
@@ -33,7 +32,6 @@ const env = {
   ...process.env,
   WONDERLAND_DEV_PLUGIN_DIR: packageRoot,
 }
-if (experimentalUi) env.WONDERLAND_PLUGIN_UI_ISOLATION_TEST = '1'
 const command = process.platform === 'win32'
   ? (process.env.ComSpec ?? 'cmd.exe')
   : 'pnpm'

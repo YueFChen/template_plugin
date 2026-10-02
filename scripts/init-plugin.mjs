@@ -113,7 +113,9 @@ const readme = [
   'pnpm run debug',
   '```',
   '',
-  '`pnpm run debug` 会重新构建插件并启动 Core debug 版。插件 UI 隔离验证仍处于实验阶段；需要加载 UI 时运行 `pnpm run debug:ui`。请先关闭已运行的 Core 开发版。',
+  '`pnpm run debug` 会重新构建插件并启动 Core debug 版，UI 使用常规隔离 iframe。请先关闭已运行的 Core 开发版。',
+  '',
+  '最低 Core 为 0.1.8。默认不声明远程访问，不能被共享；完成远程适配后才在 manifest 根节点添加 `remoteAccess: true`。详见 [CORE-COMPATIBILITY.md](CORE-COMPATIBILITY.md)。',
   '',
   '## 接口与权限',
   '',
@@ -140,7 +142,7 @@ for (const [relative, content] of changes) {
 }
 
 console.log(`Initialized ${name} (${id}) by ${author}.`)
-console.log('Run pnpm install, pnpm run validate, then pnpm run debug:ui from this plugin repository.')
+console.log('Run pnpm install, pnpm run validate, then pnpm run debug from this plugin repository.')
 
 function parseArgs(args) {
   const parsed = {}

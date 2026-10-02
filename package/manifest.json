@@ -2,11 +2,11 @@
   "manifestVersion": 2,
   "id": "template_plugin",
   "name": "Wonderland Plugin Template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Starter plugin template for the Wonderland dynamic plugin host.",
   "icon": "puzzle",
   "hostCompatibility": {
-    "minCoreVersion": "0.1.1",
+    "minCoreVersion": "0.1.8",
     "maxCoreVersionExclusive": "1.0.0",
     "protocol": {
       "minVersion": "1.0.0",
@@ -48,7 +48,8 @@
   },
   "backend": {
     "entry": "backend/wonderland-template-plugin.exe",
-    "transport": "stdio-ndjson-v1", "supportsServiceContext": true
+    "transport": "stdio-ndjson-v1",
+    "supportsServiceContext": true
   },
   "contract": "contract.json",
   "capabilities": []

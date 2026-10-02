@@ -1,0 +1,11 @@
+# Core 0.1.8 兼容说明
+
+本模板及其生成的插件最低 Core 为 **0.1.8**。构建前运行 `node scripts/check-core-compatibility.mjs`；构建脚本会自动检查此条件。旧 Core 0.1.7 不识别本次 manifest 扩展，不能安装本次新包。
+
+远程访问：**未声明，仅限本地**。
+
+模板默认省略 `remoteAccess`，新建插件也保持本地模式。完成浏览器、手机布局和设备交互检查后，作者可在 manifest 根节点添加 `"remoteAccess": true`；仅设置 `backend.supportsServiceContext` 不会允许共享。
+
+`backend.supportsServiceContext: true` 表示后端会原样回传每次调用的上下文。SDK 插件使用每次 dispatch 收到的 `HostClient`；不要缓存一个客户端跨不同请求处理文件操作。未声明远程支持的插件不会出现在共享列表，Core 也会拒绝直接远程调用。
+
+本次是本地开发适配，版本号不代表已经发布。发布顺序为先推送并发布配套 Core，再按插件仓库的检查、签名和发布流程发布插件。已登记插件的普通升级不需要修改 Catalog 身份记录。
