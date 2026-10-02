@@ -48,7 +48,7 @@
   },
   "backend": {
     "entry": "backend/wonderland-template-plugin.exe",
-    "transport": "stdio-ndjson-v1"
+    "transport": "stdio-ndjson-v1", "supportsServiceContext": true
   },
   "contract": "contract.json",
   "capabilities": []
